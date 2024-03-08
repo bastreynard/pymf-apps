@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request
 import configparser, pathlib, json
-from pymoviefinder.ImdbSearcher import ImdbSearcher
-from pymoviefinder.TorrentSearcher import TorrentSearcher
-from pymoviefinder.TorrentDownloader import TorrentDownloader
+from pyimdbmoviefinder.ImdbSearcher import ImdbSearcher
+from pyimdbmoviefinder.TorrentSearcher import TorrentSearcher
+from pyimdbmoviefinder.TorrentDownloader import TorrentDownloader
 import argparse
 from waitress import serve
 

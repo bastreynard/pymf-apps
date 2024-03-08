@@ -8,9 +8,9 @@ from PySide6.QtGui import QImage, QPixmap, QIcon
 from PySide6.QtCore import Qt, QStringListModel, QThread, QModelIndex, QObject, Signal
 from PySide6 import QtGui
 
-from pymoviefinder.ImdbSearcher import ImdbSearcher
-from pymoviefinder.TorrentSearcher import TorrentSearcher
-from pymoviefinder.TorrentDownloader import TorrentDownloader
+from pyimdbmoviefinder.ImdbSearcher import ImdbSearcher
+from pyimdbmoviefinder.TorrentSearcher import TorrentSearcher
+from pyimdbmoviefinder.TorrentDownloader import TorrentDownloader
 
 from pyqt.app_settings import SettingsHelper, SettingsWindow
 from pyqtconfig import QSettings

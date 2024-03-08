@@ -17,4 +17,4 @@ fi
 
 pip install -r requirements.txt
 pip install -e pyqt/QtWaitingSpinner
-pip install -i https://test.pypi.org/simple/ pymoviefinder-Vulpiculus==0.0.3
+pip install -i https://test.pypi.org/simple/ pyimdbmoviefinder==0.0.1
