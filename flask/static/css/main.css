@@ -1,0 +1,84 @@
+* {
+  font-family: arial;
+  scroll-behavior: smooth;
+  max-width: 1300px;
+}
+
+.dark-mode {
+  background-color: rgb(37, 37, 37);
+  color: white;
+}
+
+ul {
+    padding: 0;
+}
+
+li {
+  background-color: #333;
+  color: white;
+  list-style-position: inside;
+  margin-bottom: 2px;
+  padding: 4px 0 4px 10px;
+  cursor: pointer;
+}
+
+li:hover {
+  background-color: #999;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+}
+
+.moviePoster {
+  width: 250px;
+  aspect-ratio: 2/3;
+}
+
+div#loading {
+  width: 200px;
+  height: 200px;
+  display: none;
+  background: url(../spinner_red.gif) no-repeat;
+  cursor: wait;
+  }
+
+a:link, a:visited {
+  margin-top: 10px;
+  /* background-color: #f44336; */
+  color: green;
+  border: 2px;
+  padding: 15px 25px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+a:hover, a:active {
+  margin-top: 10px;
+  background-color: white;
+}
+
+h5, h4 {
+  grid-column: span 2 / span 2;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1000px;
+  /* grid-template-columns: auto auto; */
+  gap: 10px;
+  background-color: #333;
+  padding: 10px;
+}
+
+.item1 {
+  grid-row-start: 1;
+  grid-row-end: 3;
+  vertical-align: middle;
+}
+.item4 {
+  grid-column-start: 1;
+  grid-column-end: 3;
+}

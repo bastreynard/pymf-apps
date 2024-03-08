@@ -1,0 +1,8 @@
+[RPC]
+Host = https://localhost:9091/transmission/rpc
+User =
+Password =
+
+[Jackett]
+Host =
+ApiKey =

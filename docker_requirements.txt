@@ -1,0 +1,7 @@
+requests
+cinemagoer==2023.5.1
+httplib2
+humanize
+configparser
+flask
+waitress==2.1.2

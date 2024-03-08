@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang=“en”>
+  <head>
+    <title>Movie Search Engine</title>
+    <!-- Load CSS-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <!-- Load icon library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <meta name="viewport" content="width=device-width">
+
+    <!-- IMDb form -->
+    <form class="imdb_search" action="/" method="post">
+      <input type="text" placeholder="Search movie..." name="search_imdb_title">
+      <input type="checkbox" id="series_check" name="series_check">
+      <label for="series_check">Include TV shows</label>
+      <button type="submit" onclick="loading();"><i class="fa fa-search"></i></button>
+    </form>
+    <!-- Hidden form -->
+    <form method="POST" action="/" id="hidden-form">
+      <input type="hidden" name="list-id">
+    </form>
+  </head>
+  <body class="dark-mode" >
+    <!-- Loading div -->
+    <div id="loading"></div>
+    <!-- Content div -->
+    <div id="content">
+    {% if imdbResult %}
+    <!-- List all IMDb result from title search -->
+    <fieldset>
+      <legend>Choose torrent provider:</legend>
+      <div>
+        <input type="checkbox" id="yts" name="yts" checked>
+        <label for="yts">YTS</label>
+      </div>
+      <div>
+        <input type="checkbox" id="jackett" name="jackett">
+        <label for="jackett">JACKETT</label>
+      </div>
+    </fieldset>
+    <h3>IMDb results :</h3>
+    <ul>
+    {% for e in imdbResult %}
+    <li onclick="movieClicked('{{e.id}}')">{{e.title}}</li>
+    {% endfor %}
+
+    {% elif idResult %}
+    <!-- Show IMDb info about selected movie and torrent results -->
+    <h3>{{idResult.title}}</h3>
+    <div class="grid-container">
+      <div class="item1">
+        <img class="moviePoster" src="{{idResult.cover_url}}" alt="{{idResult.title}}">
+      </div>
+      <div class="item2">
+        <div><h5><pre>{{idResult.summary}}</pre></h5></div>
+      </div>
+      {% if idResult.plot %}
+      <div class="item3">
+        <div>{{idResult.plot}}</div>
+      </div>
+      {% endif %}
+      {% if idResult.trailer_url %}
+      <div class="item4">
+        <iframe src="{{idResult.trailer_url}}" 
+            width="720" height="405" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true" frameborder="no" scrolling="no">
+        </iframe>
+      </div>
+      {% endif %}
+    </div>
+      {% if torrentResult %}
+      <h3>Found torrents : </h3>
+      <ul>
+        {% for e in torrentResult.torrents %}
+        <li onclick="torrentClicked('{{e.url}}')">{{e.title}} , {{e.quality}} , {{e.provider}}, {{e.size}}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <!-- Back button form -->
+      <form>
+        <input type="button" name="backBtn" value="Back to results" onclick="history.back();">
+      </form>
+
+      {% elif downloadResult %}
+      <h4><pre>{{downloadResult}}</pre></h4>
+      <!-- Back button form -->
+      <form>
+        <input type="button" name="backBtn" value="Back to results" onclick="history.back();">
+      </form>
+    {% endif %}
+    </div>
+  </body>
+  <script>
+    function movieClicked(movieId) {
+      loading();
+      var hidden = document.createElement("input");
+      var checkYts = document.getElementById("yts").checked;
+      var checkJack = document.getElementById("jackett").checked;
+      hidden.type = "hidden";
+      hidden.name = "search_imdb_id";
+      // Create a json object to be passed to flask application
+      data = {
+        movieId : movieId,
+        yts : checkYts,
+        jackett : checkJack
+      }
+      hidden.value = JSON.stringify(data);
+      var f = document.getElementById("hidden-form");
+      f.appendChild(hidden);
+      f.submit();
+    }
+    function torrentClicked(magnetUrl) {
+      loading();
+      var hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = "send_torrent";
+      hidden.value = magnetUrl;
+      var f = document.getElementById("hidden-form");
+      f.appendChild(hidden);
+      f.submit();
+    }
+    function loading(){
+      var load = document.getElementById("loading");
+      var cont = document.getElementById("content");
+      load.style.display = "block";
+      cont.style.display = "none";
+    }
+  </script>
+</html>

@@ -1,0 +1,20 @@
+#!/bin/bash
+if [ ! -d "venv" ]; then
+    echo "Creating virtual env..."
+    python -m venv venv
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        source venv/bin/activate
+    else
+        source venv/Scripts/activate
+    fi
+else
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        source venv/bin/activate
+    else
+        source venv/Scripts/activate
+    fi
+fi
+
+pip install -r requirements.txt
+pip install -e pyqt/QtWaitingSpinner
+pip install -i https://test.pypi.org/simple/ pymoviefinder-Vulpiculus==0.0.3
