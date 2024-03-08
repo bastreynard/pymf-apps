@@ -42,7 +42,7 @@ The Flask application can be run as a Docker container application:
 docker compose build
 docker compose up -d
 ```
-It will use the `config.ini` file placed in `config/config.ini.sample` and will run on port 5000.
+It will use the `config.ini` file placed in `config/` and will run on port 5000.
 
 Alternatively it's possible to just run the python script itself directly:
 
@@ -50,7 +50,7 @@ Alternatively it's possible to just run the python script itself directly:
 
 ### Troubleshooting
 
-It was tested only with `Python3.10.1`, on Windows and Ubuntu 22.04 running on WSL 2.
+It was tested only with `Python3.10.1`, on Windows and Ubuntu 22.04.
 
 The only problem I encountered was this error on Linux (WSL):
 
