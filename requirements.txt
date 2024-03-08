@@ -1,11 +1,8 @@
 pyside6
 requests
-cinemagoer==2023.5.1
-httplib2
 pyinstaller
 pyqtdarktheme==2.1.0
 pyqtconfig==0.9.2
-humanize
 configparser
 flask
 waitress
