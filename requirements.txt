@@ -10,4 +10,4 @@ configparser
 flask
 waitress
 build
-twine
+pyimdbmoviefinder
