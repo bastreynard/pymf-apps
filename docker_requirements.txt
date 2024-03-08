@@ -5,3 +5,4 @@ humanize
 configparser
 flask
 waitress==2.1.2
+pyimdbmoviefinder
