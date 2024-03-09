@@ -7,4 +7,4 @@ configparser
 flask
 waitress
 build
-pyimdbmoviefinder
+pyimdbmoviefinder==0.0.5
