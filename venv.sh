@@ -15,5 +15,16 @@ else
     fi
 fi
 
+Dev=0
+while getopts ":d" option; do
+   case $option in
+      d) # app name
+         Dev=1;;
+   esac
+done
+
 pip install -r requirements.txt
 pip install -e pyqt/QtWaitingSpinner
+if [[ $Dev -eq 1 ]]; then
+pip install -e ../pyimdbmoviefinder
+fi
