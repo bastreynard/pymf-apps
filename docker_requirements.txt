@@ -2,4 +2,4 @@ requests
 configparser
 flask
 waitress==2.1.2
-pyimdbmoviefinder==0.0.6
+pyimdbmoviefinder==0.0.7
