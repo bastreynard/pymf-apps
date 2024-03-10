@@ -41,7 +41,7 @@
     <h3>IMDb results :</h3>
     <ul>
     {% for e in imdbResult %}
-    <li onclick="movieClicked('{{e.id}}')">{{e.title}}</li>
+    <li onclick="movieClicked('{{e.imdbId}}')">{{e.title}}</li>
     {% endfor %}
 
     {% elif idResult %}
@@ -49,7 +49,7 @@
     <h3>{{idResult.title}}</h3>
     <div class="grid-container">
       <div class="item1">
-        <img class="moviePoster" src="{{idResult.cover_url}}" alt="{{idResult.title}}">
+        <img class="moviePoster" src="{{idResult.coverUrl}}" alt="{{idResult.title}}">
       </div>
       <div class="item2">
         <div><h5><pre>{{idResult.summary}}</pre></h5></div>
@@ -59,9 +59,9 @@
         <div>{{idResult.plot}}</div>
       </div>
       {% endif %}
-      {% if idResult.trailer_url %}
+      {% if idResult.trailerUrl %}
       <div class="item4">
-        <iframe src="{{idResult.trailer_url}}" 
+        <iframe src="{{idResult.trailerUrl}}" 
             width="720" height="405" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true" frameborder="no" scrolling="no">
         </iframe>
       </div>
@@ -71,7 +71,7 @@
       <h3>Found torrents : </h3>
       <ul>
         {% for e in torrentResult.torrents %}
-        <li onclick="torrentClicked('{{e.url}}')">{{e.title}} , {{e.quality}} , {{e.provider}}, {{e.size}}</li>
+        <li onclick="torrentClicked('{{e.url}}')">{{e.name}} , {{e.quality}} , {{e.provider}}, {{e.size}}</li>
         {% endfor %}
       </ul>
       {% if error %}

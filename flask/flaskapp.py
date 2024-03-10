@@ -15,8 +15,8 @@ def view():
     if request.method == 'POST':
         # IMDb titles search
         if request.form.get('search_imdb_title'):
-            include_serie = request.form.get('series_check')
-            imdbResult = ImdbSearcher().searchByTitle(request.form.get('search_imdb_title'), no_series = not include_serie)
+            includeTv = request.form.get('series_check')
+            imdbResult = ImdbSearcher().search_by_title(request.form.get('search_imdb_title'), includeTv = includeTv)
             return render_template('main.html', imdbResult=imdbResult)
         # IMDb ID + Torrent search
         if request.form.get('search_imdb_id'):
@@ -24,7 +24,7 @@ def view():
             inputs = json.loads(request.form.get('search_imdb_id'))
             if type(inputs) is dict:
                 movieId, yts, jackett = inputs['movieId'], inputs['yts'], inputs['jackett']
-                idResult = ImdbSearcher().searchById(movieId)
+                idResult = ImdbSearcher().search_by_id(movieId)
                 # Get Jackett config if needed
                 [jHost, jApiKey] = None, None
                 if jackett:
@@ -34,7 +34,7 @@ def view():
                         return render_template('main.html', searchTorrentResult=str(e))
                 # Search torrent
                 searcher = TorrentSearcher()
-                searcher.setSearch(movieId, idResult.title, yts=yts, jackett=jackett, jackettApiKey=jApiKey, jackettHost=jHost)
+                searcher.set_search(movieId, idResult.title, yts=yts, jackett=jackett, jackettApiKey=jApiKey, jackettHost=jHost)
                 torrentResult, error = searcher.run()
                 if error:
                     return render_template('main.html', idResult=idResult, torrentResult=torrentResult, error=error)
@@ -79,7 +79,8 @@ def main_flask():
     
     # Check config
     config = configparser.ConfigParser()
-    config_path = str(pathlib.Path(__file__).parent) + "/config/config.ini"
+    config_path = str(pathlib.Path(__file__).parent) + "/config/config.ini" if docker else \
+        str(pathlib.Path(__file__).parent.parent) + "/config/config.ini"
     config.read(config_path)
     if len(config) == 0:
         raise Exception("Config file not found")

@@ -39,20 +39,20 @@ class ImdbSearchWorker(QObject):
     QSignal 'finished' is emitted on completion with params (byID, input)
     '''
     finished = Signal(bool, str)
-    def __init__(self, imdbSearcher:ImdbSearcher, input:str, byID=False, noSeries=False):
+    def __init__(self, imdbSearcher:ImdbSearcher, input:str, byID=False, includeTv=False):
         super().__init__()
         self.input = input
         self.byID = byID
         self.imdb = imdbSearcher
-        self.noSeries = noSeries
+        self.includeTv = includeTv
         self.searchResult = []
 
     def run(self):
         """Long-running task."""
         if self.byID:
-            self.imdb.searchById(self.input)
+            self.imdb.search_by_id(self.input)
         else:
-            self.imdb.searchByTitle(self.input, no_series=self.noSeries)
+            self.imdb.search_by_title(self.input, includeTv=self.includeTv)
         self.finished.emit(self.byID, self.input)
 
 class TorrentSearchWorker(QObject):
@@ -61,18 +61,18 @@ class TorrentSearchWorker(QObject):
     QSignal 'finished' is emitted on completion
     '''
     finished = Signal(str)
-    def __init__(self, torrentSearcher:TorrentSearcher, id:str, title:str, yts:bool=True, 
+    def __init__(self, torrentSearcher:TorrentSearcher, imdbId:str, title:str, yts:bool=True, 
                  jackett:bool=True, jackettApiKey:str='', jackettHost:str=''):
         super().__init__()
-        self.id = id
+        self.imdbId = imdbId
         self.title = title 
         self.tor = torrentSearcher
-        torrentSearcher.setSearch(id, title, yts, jackett, jackettApiKey, jackettHost)
+        torrentSearcher.set_search(imdbId, title, yts, jackett, jackettApiKey, jackettHost)
 
     def run(self):
         """Long-running task."""
         self.tor.run()
-        self.finished.emit(self.id)
+        self.finished.emit(self.imdbId)
 
 class MainWindow(QWidget):
     '''This is the main application window'''
@@ -193,7 +193,7 @@ class MainWindow(QWidget):
         else:
             self.searchImdbClickedResult()
 
-    def setupImdbThread(self, input, byID=False, includeSeries=False):
+    def setupImdbThread(self, input, byID=False, includeTv=False):
         '''
         Setup a thread for the IMDb search which is quite long
         input: the input to be passed to the search
@@ -207,7 +207,7 @@ class MainWindow(QWidget):
         # Create a QThread object
         if not self.imdbThread.isRunning():
             # Create a worker object
-            self.imdbWorker = ImdbSearchWorker(self.imdbSearcher, input=input, byID=byID, noSeries=(not includeSeries))
+            self.imdbWorker = ImdbSearchWorker(self.imdbSearcher, input=input, byID=byID, includeTv=includeTv)
             # Move worker to the thread
             self.imdbWorker.moveToThread(self.imdbThread)
             # Connect signals and slots
@@ -226,10 +226,10 @@ class MainWindow(QWidget):
         self.clearImdbSearch()
         self.clearTorrentUI()
         input = self.ui.searchEdit.text()
-        includeSeries = self.ui.seriesCheckBox.isChecked()
+        includeTv = self.ui.seriesCheckBox.isChecked()
         # Search movie
         # We enforce that the previous search must be finished first
-        if self.setupImdbThread(input, includeSeries=includeSeries):
+        if self.setupImdbThread(input, includeTv=includeTv):
             self.imdbThread.start()
 
     def imdbListItemClicked(self, index:QModelIndex):
@@ -240,15 +240,15 @@ class MainWindow(QWidget):
         #self.ui.torrentSearchButton.setEnabled(False)
         # Search movie
         title = self.imdbResultListModel.stringList()[index.row()]
-        includeSeries = self.ui.seriesCheckBox.isChecked()
-        mov = self.imdbSearcher.getMovieFromTitle(title)
+        includeTv = self.ui.seriesCheckBox.isChecked()
+        mov = self.imdbSearcher.get_movie_from_title(title)
         self.currentMovieSelection = mov
         self.ui.torrentSearchGroupBox.setTitle("Search for {}".format(title))
         # We enforce that the previous search must be finished first
-        if mov.fully_searched:
+        if mov.fullySearched:
             self.updateImdbResultUI()
         else:
-            if self.setupImdbThread(mov.id, byID=True, includeSeries=includeSeries):
+            if self.setupImdbThread(mov.imdbId, byID=True, includeTv=includeTv):
                 self.imdbThread.start()
 
     def searchImdbClickedResult(self):
@@ -265,13 +265,13 @@ class MainWindow(QWidget):
         Called when the IMDb search Worker has finished, if byID is True
         input is the actual input that was previously passed to the search
         '''
-        movieObj = self.imdbSearcher.getMovieFromId(input)
+        movieObj = self.imdbSearcher.get_movie_from_id(input)
         logger.info(f"Finished query for {movieObj.title} input: {input}")
         self.updateImdbResultUI()
 
     def updateImdbResultUI(self):
         movie = self.currentMovieSelection
-        self.updatePoster(movie.cover_url)
+        self.updatePoster(movie.coverUrl)
 
         self.ui.ratingLabel.setText(str(movie.rating)+"/10" if movie.rating else "")
         if movie.rating:
@@ -279,7 +279,7 @@ class MainWindow(QWidget):
         else:
             self.ui.ratingImdbLogo.hide()
         self.ui.summaryLabel.setText(movie.summary + "\r\n" + (movie.plot if movie.plot else ""))
-        s_link = "<a href=\"https://www.imdb.com/title/tt" + movie.id + "\">IMDb Page</a>"
+        s_link = "<a href=\"https://www.imdb.com/title/tt" + movie.imdbId + "\">IMDb Page</a>"
         self.ui.imdbLinkLabel.setText(s_link)
         # Enable torrent search button
         self.ui.torrentSearchButton.setEnabled(True)
@@ -287,7 +287,7 @@ class MainWindow(QWidget):
     ###########################################################################################
     ## Torrent Search
     ###########################################################################################
-    def setupTorrentThread(self, id, title):
+    def setupTorrentThread(self, imdbId, title):
         '''
         Setup a thread for the Torrent search which is quite long
         input: the input to be passed to the search
@@ -302,7 +302,7 @@ class MainWindow(QWidget):
             settings = SettingsHelper.retrieveSettings(self.settingsObj)
             # Create a worker object
             self.torrentWorker = TorrentSearchWorker(self.torrentSearcher, 
-                                                     id, 
+                                                     imdbId, 
                                                      title, 
                                                      yts=self.ui.ytsCheckBox.isChecked(), 
                                                      jackett=self.ui.jackettCheckBox.isChecked(),
@@ -325,8 +325,8 @@ class MainWindow(QWidget):
         '''
         self.clearTorrentUI(keepTitle=True)
         mov = self.currentMovieSelection
-        logger.info(f"Searching torrent for {mov.id} : {mov.title}")
-        if self.setupTorrentThread(mov.id, mov.title):
+        logger.info(f"Searching torrent for {mov.imdbId} : {mov.title}")
+        if self.setupTorrentThread(mov.imdbId, mov.title):
             self.torrentThread.start()
 
     def torrentListItemClicked(self, index:QModelIndex):
@@ -341,7 +341,7 @@ class MainWindow(QWidget):
                 break
         assert selection, "Torrent selection not found, this should not happen"
         # Format torrent details
-        s = 'Torrent\n=====\nTitle: %s\n' % selection.title
+        s = 'Torrent\n=====\nTitle: %s\n' % selection.name
         s += 'Quality: %s\n' % selection.quality
         s += 'Type: %s\n' % selection.type
         s += 'Size: %s\n' % selection.size
@@ -362,7 +362,7 @@ class MainWindow(QWidget):
         tor = self.currentTorrentSelection
         settings = SettingsHelper.retrieveSettings(self.settingsObj)
         SettingsHelper.showSettings(settings)
-        logger.info(f"Sending torrent to transmission client : {tor.title} url: {tor.url}")
+        logger.info(f"Sending torrent to transmission client : {tor.name} url: {tor.url}")
         client = TorrentDownloader(settings.hostname, settings.username, settings.password, settings.downloadDir if settings.downloadDir != "" else None)
         result, info = client.add_torrent_magnet(tor.url)
         self.showDialog(info, error=result==False)
@@ -374,14 +374,14 @@ class MainWindow(QWidget):
         self.ui.torrentSendButton.setEnabled(SettingsHelper.rpcSettingsValid(self.settingsObj) 
                                              and self.currentTorrentSelection is not None)
         
-    def searchTorrentClickedResult(self, id):
+    def searchTorrentClickedResult(self, imdbId):
         '''
         Called when the torrent search has completed
         '''
         self.ui.spinnerTorrent.stop()
         self.ui.torrentSearchButton.setEnabled(True)
         self.ui.torrentResultListView.setEnabled(True)
-        torrents = self.torrentSearcher.getTorrentsFromId(id)
+        torrents = self.torrentSearcher.get_torrents_from_id(imdbId)
         if torrents:
             desc_list = [torrents[i].description for i in range(len(torrents)) if torrents[i] is not None]
             self.torrentResultListModel.setStringList(desc_list)
