@@ -31,21 +31,25 @@ def view():
                     try:
                         [jHost, jApiKey] = getJackettConfig()
                     except Exception as e:
-                        return render_template('main.html', downloadResult=str(e))
+                        return render_template('main.html', searchTorrentResult=str(e))
                 # Search torrent
                 searcher = TorrentSearcher()
                 searcher.setSearch(movieId, idResult.title, yts=yts, jackett=jackett, jackettApiKey=jApiKey, jackettHost=jHost)
-                torrentResult = searcher.run()
-                return render_template('main.html', idResult=idResult, torrentResult=torrentResult)
+                torrentResult, error = searcher.run()
+                if error:
+                    return render_template('main.html', idResult=idResult, torrentResult=torrentResult, error=error)
+                else:
+                    return render_template('main.html', idResult=idResult, torrentResult=torrentResult)
         # Add torrent through RPC
-        if request.form.get('send_torrent'):
+        if request.form.get('click_torrent'):
+            url = request.form.get('click_torrent')
             try:
                 [host, usr, pw] = getRpcConfig()
             except Exception as e:
-                return render_template('main.html', downloadResult=str(e))
+                return render_template('main.html', searchTorrentResult=str(e), url=url, result=False)
             dl = TorrentDownloader(host, usr, pw)
-            downloadResult = dl.add_torrent_magnet(request.form.get('send_torrent'))
-            return render_template('main.html', downloadResult=downloadResult)
+            result, searchTorrentResult = dl.add_torrent_magnet(url)
+            return render_template('main.html', searchTorrentResult=searchTorrentResult, url=url, result=result)
         else:
             pass # unknown
     elif request.method == 'GET':
@@ -75,8 +79,7 @@ def main_flask():
     
     # Check config
     config = configparser.ConfigParser()
-    config_path = str(pathlib.Path(__file__).parent) + "/config/config.ini" if docker else \
-        str(pathlib.Path(__file__).parent.parent) + "/config/config.ini"
+    config_path = str(pathlib.Path(__file__).parent) + "/config/config.ini"
     config.read(config_path)
     if len(config) == 0:
         raise Exception("Config file not found")

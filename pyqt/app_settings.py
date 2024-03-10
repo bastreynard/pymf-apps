@@ -1,3 +1,4 @@
+import logging
 from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Signal
 from .ui.ui_settings import Ui_Settings
@@ -5,6 +6,7 @@ from .ui.ui_settings import Ui_Settings
 from pyqtconfig import QSettings
 from dataclasses import dataclass
 
+logger = logging.getLogger('pyqtmoviefinder')
 @dataclass
 class AppSettings():
     hostname: str
@@ -81,14 +83,14 @@ class SettingsHelper():
     @staticmethod
     def showSettings(appSettings:AppSettings):
         dir = appSettings.downloadDir
-        s = "=== RPC Server Settings ===\r\n"
+        s = "\r\n=== RPC Server Settings ===\r\n"
         s += "Hostname : " + appSettings.hostname + "\r\n"
         s += "Username : " + appSettings.username + "\r\n"
         s += "Password : " + appSettings.password + "\r\n"
         s += "Download Directory : " + (dir if dir != "" else "default") + "\r\n"
         s += "Jackett Host : " + appSettings.jackettHost + "\r\n"
         s += "Jackett API key : " + appSettings.jackettApiKey + "\r\n"
-        print(s)
+        logger.debug(s)
 
     @staticmethod
     def clearSettings(settings:QSettings):

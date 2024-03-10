@@ -74,14 +74,24 @@
         <li onclick="torrentClicked('{{e.url}}')">{{e.title}} , {{e.quality}} , {{e.provider}}, {{e.size}}</li>
         {% endfor %}
       </ul>
+      {% if error %}
+      <h3>{{error}}</h3>
+      {% endif %}
       {% endif %}
       <!-- Back button form -->
       <form>
         <input type="button" name="backBtn" value="Back to results" onclick="history.back();">
       </form>
 
-      {% elif downloadResult %}
-      <h4><pre>{{downloadResult}}</pre></h4>
+      {% elif searchTorrentResult %}
+      {% if result == 0 %}
+      <h4><pre style="color:#FF0000";>{{searchTorrentResult}}</pre></h4>
+      {% else %}
+      <h4><pre style="color:#76eb48";>{{searchTorrentResult}}</pre></h4>
+      {% endif %}
+      {% if url %}
+      <h5><a href="{{url}}">Direct Link</a></h5>
+      {% endif %}
       <!-- Back button form -->
       <form>
         <input type="button" name="backBtn" value="Back to results" onclick="history.back();">
@@ -112,7 +122,7 @@
       loading();
       var hidden = document.createElement("input");
       hidden.type = "hidden";
-      hidden.name = "send_torrent";
+      hidden.name = "click_torrent";
       hidden.value = magnetUrl;
       var f = document.getElementById("hidden-form");
       f.appendChild(hidden);

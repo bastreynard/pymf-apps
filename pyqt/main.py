@@ -2,6 +2,7 @@
 import sys, os
 import requests
 import qdarktheme
+import logging
 
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 from PySide6.QtGui import QImage, QPixmap, QIcon
@@ -14,6 +15,8 @@ from pyimdbmoviefinder.TorrentDownloader import TorrentDownloader
 
 from pyqt.app_settings import SettingsHelper, SettingsWindow
 from pyqtconfig import QSettings
+
+logger = logging.getLogger('pyqtmoviefinder')
 
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -172,7 +175,7 @@ class MainWindow(QWidget):
                                                 self.ui.moviePosterLabel.height()))
             self.ui.moviePosterLabel.show()
         else:
-            print("No cover for movie")
+            logger.warning("No cover for movie")
 
     ###########################################################################################
     ## IMDb Search
@@ -181,7 +184,7 @@ class MainWindow(QWidget):
         '''
         Connected to the finished signal of the IMDb search Worker
         '''
-        print("IMDb Thread finished !")
+        logger.debug("IMDb Thread finished !")
         self.ui.spinnerImdb.stop()
         self.ui.searchImdbButton.setEnabled(True)
         self.ui.imdbResultListView.setEnabled(True)
@@ -263,7 +266,7 @@ class MainWindow(QWidget):
         input is the actual input that was previously passed to the search
         '''
         movieObj = self.imdbSearcher.getMovieFromId(input)
-        print("Finished query for " + movieObj.title + "input:"+input)
+        logger.info(f"Finished query for {movieObj.title} input: {input}")
         self.updateImdbResultUI()
 
     def updateImdbResultUI(self):
@@ -320,9 +323,9 @@ class MainWindow(QWidget):
         '''
         Called when the user clicks the torrent search button
         '''
-        print("Searching for torrent matching " + str(self.currentMovieSelection))
         self.clearTorrentUI(keepTitle=True)
         mov = self.currentMovieSelection
+        logger.info(f"Searching torrent for {mov.id} : {mov.title}")
         if self.setupTorrentThread(mov.id, mov.title):
             self.torrentThread.start()
 
@@ -359,10 +362,10 @@ class MainWindow(QWidget):
         tor = self.currentTorrentSelection
         settings = SettingsHelper.retrieveSettings(self.settingsObj)
         SettingsHelper.showSettings(settings)
-        print("Sending torrent to transmission client : ", tor.title, tor.url)
+        logger.info(f"Sending torrent to transmission client : {tor.title} url: {tor.url}")
         client = TorrentDownloader(settings.hostname, settings.username, settings.password, settings.downloadDir if settings.downloadDir != "" else None)
-        result = client.add_torrent_magnet(tor.url)
-        self.showDialog(result)
+        result, info = client.add_torrent_magnet(tor.url)
+        self.showDialog(info, error=result==False)
 
     def newSettingsApplied(self):
         '''
@@ -392,11 +395,14 @@ class MainWindow(QWidget):
         '''
         self.msgBox.hide()
 
-    def showDialog(self, text:str):
+    def showDialog(self, text:str, error=False):
         '''
         Shows a dialog containing the input text
         '''
-        self.msgBox.setIcon(QMessageBox.Information)
+        if error:
+            self.msgBox.setIcon(QMessageBox.Critical)
+        else:
+            self.msgBox.setIcon(QMessageBox.Information)
         self.msgBox.setText(text)
         self.msgBox.setWindowTitle("Message")
         self.msgBox.setStandardButtons(QMessageBox.Ok)
