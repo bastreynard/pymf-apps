@@ -67,7 +67,10 @@ class TorrentSearchWorker(QObject):
         self.imdbId = imdbId
         self.title = title 
         self.tor = torrentSearcher
-        torrentSearcher.set_search(imdbId, title, yts, jackett, jackettApiKey, jackettHost)
+        logger.debug(f'Searching for {title} (ID {imdbId}) yts:{yts} jackett:{jackett} (Host:{jackettHost} Key:{jackettApiKey})')
+        success, status = torrentSearcher.set_search(imdbId, title, yts, jackett, jackettApiKey, jackettHost)
+        if not success:
+            logger.error(status)
 
     def run(self):
         """Long-running task."""
@@ -168,6 +171,7 @@ class MainWindow(QWidget):
         '''
         self.ui.moviePosterLabel.clear()
         if url is not None:
+            logger.debug("Cover URL : " + url)
             image = QImage()
             image.loadFromData(requests.get(url).content)
             pixmap = QPixmap(image)
@@ -325,7 +329,6 @@ class MainWindow(QWidget):
         '''
         self.clearTorrentUI(keepTitle=True)
         mov = self.currentMovieSelection
-        logger.info(f"Searching torrent for {mov.imdbId} : {mov.title}")
         if self.setupTorrentThread(mov.imdbId, mov.title):
             self.torrentThread.start()
 
